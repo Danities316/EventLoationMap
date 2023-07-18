@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Dashboard</title>
+    <style>
+    /* Reset some default styles */
+    html, body, div, span, h1, h2, h3, h4, h5, h6, p, a, img, ul, li {
+      margin: 0;
+      padding: 0;
+      border: 0;
+      font-size: 100%;
+      font-family: inherit;
+      vertical-align: baseline;
+      box-sizing: border-box;
+    }
+
+    /* Set a global font family */
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    /* Page container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Heading styles */
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    /* Map container */
+    #map {
+      height: 500px;
+      margin-bottom: 20px;
+      margin-left: 50px;
+      margin-right: 50px;
+  
+  
+    }
+
+    /* Event list */
+    .event-list {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 20px;
+    }
+
+    .event-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 5px;
+    }
+
+    .event-item .event-name {
+      margin-left: 10px;
+    }
+    .title{
+      text-align: center;
+      font: 28px;
+    }
+    .subTitle{
+      text-align: center;
+      font-size: 24px;
+      font-weight: 500;
+    }
+
+    /* Responsive media queries */
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+
+      #map {
+        height: 300px;
+        
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1 class="title">User Dashboard</h1>
+    <h3 class="subTitle">A simple location map from an attendee current loction to the event Location</h3>
+      <h1 class="subTitle">Click on the BLUE map Mark to begin your Journey to the even Location</h1>
+  <div id="map"></div>
+  <!-- Include turf library -->
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@latest"></script>
+
+<!-- Include Mapbox library -->
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.css" rel="stylesheet">
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiZGFuaXRpZXMiLCJhIjoiY2xrOGpkdDNuMDMwdTNjbDkzYXc3Mjc4OSJ9.oI9gyV1OiWsZhPUXMyO9mg';
+// 4.960484276527516, 7.031170868914767
+// const defaultLongitude = 3.3792; // Longitude for Lagos
+// const defaultLatitude = 6.5244; // Latitude for Lagos
+
+// const longitude1 = 3.4064; // Longitude for Lagos
+// const latitude1 =  6.4281; // Latitude for Lagos
+
+// const longitude2 = 3.4185; // Longitude for Lagos
+// const latitude2 = 6.4541; // Latitude for Lagos
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const mapContainer = document.getElementById('map');
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const currentLatitude = position.coords.latitude;
+      const currentLongitude = position.coords.longitude;
+      console.log('Current Latitude:', currentLatitude);
+      console.log('Current Longitude:', currentLongitude);
+
+      const map = new mapboxgl.Map({
+        container: mapContainer,
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [currentLongitude, currentLatitude],
+        zoom: 8,
+      });
+
+     const eventLatitude =5.0380 
+      const eventLongitude = 7.9266 
+
+      const currentMarker = new mapboxgl.Marker({ color: 'blue' })
+        .setLngLat([currentLongitude, currentLatitude])
+        .setPopup(new mapboxgl.Popup().setHTML('You are here'))
+        .addTo(map)
+        .togglePopup();
+
+      const eventMarker = new mapboxgl.Marker({ color: 'red' })
+        .setLngLat([eventLongitude, eventLatitude])
+        .setPopup(new mapboxgl.Popup().setHTML('Event Location'))
+        .addTo(map)
+        .togglePopup();
+
+      const coordinates = [
+        [currentLongitude, currentLatitude],
+        [eventLongitude, eventLatitude]
+      ];
+
+      const lineString = {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'LineString',
+          coordinates: coordinates
+        }
+      };
+
+      let isAnimationStarted = false;
+
+      const animateMarker = () => {
+        if (!isAnimationStarted) {
+          isAnimationStarted = true;
+          const marker = new mapboxgl.Marker({ color: 'green' })
+            .setLngLat([currentLongitude, currentLatitude])
+            .addTo(map);
+
+          const path = turf.lineString(coordinates);
+          const distance = turf.length(path, { units: 'kilometers' });
+          const animationDuration = 5000; // Animation duration in milliseconds
+          const animationSteps = 100;
+
+          let animationIndex = 0;
+          const animationInterval = animationDuration / animationSteps;
+
+          const animate = () => {
+            if (animationIndex >= animationSteps) {
+              marker.setLngLat([eventLongitude, eventLatitude]);
+              marker.togglePopup();
+            } else {
+              const along = turf.along(path, (distance / animationSteps) * animationIndex, { units: 'kilometers' });
+              const { geometry: { coordinates: lngLat } } = along;
+              marker.setLngLat(lngLat);
+              animationIndex++;
+              setTimeout(animate, animationInterval);
+            }
+          };
+
+          animate();
+        }
+      };
+
+      map.on('click', animateMarker);
+    },
+    (error) => {
+      console.error('Error getting current position:', error);
+    }
+  );
+} else {
+  console.error('Geolocation is not supported by this browser.');
+}
+
+     
+
+  });
+
+  </script>
+</body>
+</html>

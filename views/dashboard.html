@@ -1,0 +1,125 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Dashboard</title>
+  <style>
+    /* Reset some default styles */
+    html, body, div, span, h1, h2, h3, h4, h5, h6, p, a, img, ul, li {
+      margin: 0;
+      padding: 0;
+      border: 0;
+      font-size: 100%;
+      font-family: inherit;
+      vertical-align: baseline;
+      box-sizing: border-box;
+    }
+
+    /* Set a global font family */
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    /* Page container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Heading styles */
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    /* Map container */
+    #map {
+      height: 400px;
+      margin-bottom: 20px;
+    }
+
+    /* Event list */
+    .event-list {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 20px;
+    }
+
+    .event-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 5px;
+    }
+
+    .event-item .event-name {
+      margin-left: 10px;
+    }
+
+    /* Responsive media queries */
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+
+      #map {
+        height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>User Dashboard</h1>
+    <div id="map"></div>
+    <ul class="event-list">
+      <li class="event-item">
+        <img src="https://events-ag.com/wp-content/uploads/2022/04/event-management-service2.jpg" alt="Event 1" width="80" height="50">
+        <span class="event-name">Event 1</span>
+      </li>
+      <li class="event-item">
+        <img src="https://www.propertypro.ng/blog/wp-content/uploads/2022/04/lekki-event-center-decorated2.jpeg" alt="Event 2" width = "80" height = "50"/>
+        <span class="event-name">Event 2</span>
+      </li>
+      <!-- Add more event items as needed -->
+    </ul>
+  </div>
+
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.css" rel="stylesheet">
+  <script>
+     mapboxgl.accessToken = 'pk.eyJ1IjoiZGFuaXRpZXMiLCJhIjoiY2xrOGpkdDNuMDMwdTNjbDkzYXc3Mjc4OSJ9.oI9gyV1OiWsZhPUXMyO9mg';
+const longitude = 3.3792; // Longitude for Lagos
+const latitude = 6.5244; // Latitude for Lagos
+
+const longitude1 = 3.3692; // Longitude for Lagos
+const latitude1 = 6.5444; // Latitude for Lagos
+
+const longitude2 = 3.3192; // Longitude for Lagos
+const latitude2 = 6.5844; // Latitude for Lagos
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [longitude, latitude],
+      zoom: 10,
+    });
+
+    // Fetch event locations from the backend (AJAX request or any other method)
+    const eventLocations = [
+      { name: 'Event 1', coordinates: [longitude1, latitude1] },
+      { name: 'Event 2', coordinates: [longitude2, latitude2] },
+      // Add more event locations as needed
+    ];
+
+    eventLocations.forEach((event) => {
+      const marker = new mapboxgl.Marker()
+        .setLngLat(event.coordinates)
+        .setPopup(new mapboxgl.Popup().setHTML(`<h3>${event.name}</h3>`))
+        .addTo(map);
+    });
+  </script>
+</body>
+</html>
